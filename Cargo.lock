@@ -2136,7 +2136,7 @@ dependencies = [
 
 [[package]]
 name = "translation"
-version = "0.0.0"
+version = "0.0.1"
 dependencies = [
  "actix-web",
  "once_cell",
