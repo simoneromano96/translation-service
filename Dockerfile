@@ -8,6 +8,16 @@ RUN curl https://download.pytorch.org/libtorch/cpu/libtorch-cxx11-abi-shared-wit
 RUN unzip /vendor/libtorch.zip
 RUN rm -rf /vendor/libtorch.zip
 
+FROM debian as download-models
+
+RUN apt-get update && apt-get install -y git git-lfs
+RUN mkdir -p /models
+WORKDIR /models
+
+RUN git lfs install
+RUN git clone https://huggingface.co/Helsinki-NLP/opus-mt-en-ROMANCE
+RUN git clone https://huggingface.co/Helsinki-NLP/opus-mt-ROMANCE-en
+
 FROM rust:slim as builder
 
 RUN apt-get update && apt-get install -y pkg-config libssl-dev build-essential
@@ -32,7 +42,7 @@ COPY --from=install-libtorch /vendor/libtorch /vendor/libtorch
 ENV LIBTORCH=/vendor/libtorch
 ENV LD_LIBRARY_PATH=/vendor/libtorch/lib:$LD_LIBRARY_PATH
 
-RUN apt-get update && apt-get install -y pkg-config libssl-dev
+RUN apt-get update && apt-get install -y pkg-config libssl-dev libgomp1
 
 WORKDIR /app
 

@@ -1,4 +1,5 @@
 use std::{
+    path::PathBuf,
     sync::{
         atomic::AtomicBool,
         mpsc::{self},
@@ -8,7 +9,11 @@ use std::{
 };
 
 use rust_bert::{
-    pipelines::translation::{Language, TranslationModelBuilder},
+    pipelines::{
+        common::{ModelResource, ModelType},
+        translation::{Language, TranslationConfig, TranslationModel, TranslationModelBuilder},
+    },
+    resources::LocalResource,
     RustBertError,
 };
 use tch::Device;
@@ -17,6 +22,8 @@ use tokio::sync::oneshot;
 use thiserror::Error;
 use tracing::debug;
 use utoipa::ToSchema;
+
+use crate::settings::SETTINGS;
 
 /// Custom error type for the Translator.
 #[derive(Error, Debug, ToSchema)]
@@ -90,17 +97,48 @@ impl Translator {
         direction: TranslationDirection,
         stop_flag: Arc<AtomicBool>,
     ) -> Result<(), TranslatorError> {
+        debug!("Initialising model");
+
+        let mut base_path = PathBuf::from(&SETTINGS.path);
+
         // Create a translation model based on the specified direction
         let (source_lang, target_lang) = match direction {
-            TranslationDirection::EnglishToItalian => (Language::English, Language::Italian),
-            TranslationDirection::ItalianToEnglish => (Language::Italian, Language::English),
+            TranslationDirection::EnglishToItalian => {
+                base_path.push("opus-mt-en-ROMANCE");
+                (Language::English, Language::Italian)
+            }
+            TranslationDirection::ItalianToEnglish => {
+                base_path.push("opus-mt-ROMANCE-en");
+                (Language::Italian, Language::English)
+            }
         };
 
-        let model = TranslationModelBuilder::new()
-            .with_source_languages(vec![source_lang])
-            .with_target_languages(vec![target_lang])
-            .with_device(Device::cuda_if_available())
-            .create_model()?;
+        debug!("Derived base_path {base_path:?}");
+
+        let model_resource = LocalResource {
+            local_path: base_path.join("rust_model.ot"),
+        };
+        let config_resource = LocalResource {
+            local_path: base_path.join("config.json"),
+        };
+        let vocab_resource = LocalResource {
+            local_path: base_path.join("vocab.json"),
+        };
+
+        let translation_config = TranslationConfig::new(
+            ModelType::Marian,
+            ModelResource::Torch(Box::new(model_resource)),
+            config_resource,
+            vocab_resource,
+            None,
+            vec![source_lang],
+            vec![target_lang],
+            Device::cuda_if_available(),
+        );
+        debug!("Derived translation_config");
+
+        let model = TranslationModel::new(translation_config)?;
+        debug!("Initialised model");
 
         // Process incoming translation requests
         while !stop_flag.load(Ordering::Relaxed) {

@@ -8,9 +8,10 @@ edition = "2021"
 [dependencies]
 # actix-web: Web framework for building web applications in Rust.
 actix-web = "4.4.0"
+config = "0.13.3"
 once_cell = "1.18.0"
 # rust-bert: Natural language processing library for Rust, used for translation.
-rust-bert = { version = "0.21.0" }
+rust-bert = { version = "0.21.0", default-features = false }
 # serde: Serialization and deserialization library for JSON.
 serde = { version = "1.0.188", features = ["derive"] }
 # serde_json: JSON support for serde, used for handling JSON data.
@@ -25,8 +26,7 @@ tokio = "1.32.0"
 tracing = "0.1.37"
 # tracing-actix-web: Integration between Actix Web and the tracing framework.
 tracing-actix-web = "0.7.6"
-# tracing-subscriber: Subscriber for the tracing framework, used for log output.
-tracing-subscriber = "0.3.17"
+tracing-subscriber = { version = "0.3.17", features = ["env-filter"] }
 # utoipa: Open api tooling.
 utoipa = { version = "3.5.0", features = ["actix_extras"] }
 # utoipa-redoc: Redoc UI.
