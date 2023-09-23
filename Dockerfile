@@ -26,6 +26,12 @@ RUN cargo build --release
 
 FROM debian
 
+RUN mkdir -p /vendor/libtorch
+COPY --from=install-libtorch /vendor/libtorch /vendor/libtorch
+
+ENV LIBTORCH=/vendor/libtorch
+ENV LD_LIBRARY_PATH=/vendor/libtorch/lib:$LD_LIBRARY_PATH
+
 RUN apt-get update && apt-get install -y pkg-config libssl-dev
 
 WORKDIR /app
