@@ -30,7 +30,7 @@ async fn main() -> std::io::Result<()> {
             .service(openapi_json)
     })
     // .bind((Ipv4Addr::UNSPECIFIED, 8080))?
-    .bind((Ipv6Addr::UNSPECIFIED, 8080))?
+    .bind((Ipv6Addr::UNSPECIFIED, 80))?
     .run()
     .await
 }
