@@ -15,8 +15,10 @@ RUN mkdir -p /models
 WORKDIR /models
 
 RUN git lfs install
-RUN git clone https://huggingface.co/Helsinki-NLP/opus-mt-en-ROMANCE
-RUN git clone https://huggingface.co/Helsinki-NLP/opus-mt-ROMANCE-en
+RUN GIT_LFS_SKIP_SMUDGE=1 git clone https://huggingface.co/Helsinki-NLP/opus-mt-en-ROMANCE
+RUN cd /models/opus-mt-en-ROMANCE && git lfs pull
+RUN GIT_LFS_SKIP_SMUDGE=1 git clone https://huggingface.co/Helsinki-NLP/opus-mt-ROMANCE-en
+RUN cd /models/opus-mt-ROMANCE-en && git lfs pull
 
 FROM rust:slim as builder
 
