@@ -22,12 +22,11 @@ async fn openapi_json() -> impl Responder {
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    // tracing_subscriber::fmt::init();
-
     tracing_subscriber::fmt()
         .with_env_filter(EnvFilter::from_default_env())
         .init();
 
+    // Force settings evaluation in main
     let _ = SETTINGS.path;
 
     let app_context = Data::new(prepare_app_context());

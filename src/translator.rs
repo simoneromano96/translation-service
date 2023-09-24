@@ -11,7 +11,7 @@ use std::{
 use rust_bert::{
     pipelines::{
         common::{ModelResource, ModelType},
-        translation::{Language, TranslationConfig, TranslationModel, TranslationModelBuilder},
+        translation::{Language, TranslationConfig, TranslationModel},
     },
     resources::LocalResource,
     RustBertError,
@@ -99,7 +99,7 @@ impl Translator {
     ) -> Result<(), TranslatorError> {
         debug!("Initialising model");
 
-        let mut base_path = PathBuf::from(&SETTINGS.path);
+        let mut base_path = PathBuf::from(&SETTINGS.path).join("models");
 
         // Create a translation model based on the specified direction
         let (source_lang, target_lang) = match direction {
@@ -114,6 +114,8 @@ impl Translator {
         };
 
         debug!("Derived base_path {base_path:?}");
+        debug!("Derived source_lang {source_lang:?}");
+        debug!("Derived target_lang {target_lang:?}");
 
         let model_resource = LocalResource {
             local_path: base_path.join("rust_model.ot"),

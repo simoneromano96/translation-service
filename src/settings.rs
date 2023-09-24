@@ -1,23 +1,20 @@
-use config::{Config, ConfigError, Environment};
+use std::{io, path::PathBuf};
+
 use once_cell::sync::Lazy;
 use serde::Deserialize;
 
 #[derive(Debug, Deserialize)]
 pub struct Settings {
-    pub path: String,
+    pub path: PathBuf,
 }
 
 impl Settings {
-    pub fn new() -> Result<Self, ConfigError> {
-        let s = Config::builder()
-            // Add in settings from the environment (with a prefix of APP)
-            // Eg.. `APP_DEBUG=1 ./target/app` would set the `debug` key
-            .add_source(Environment::with_prefix("app"))
-            // You may also programmatically change settings
-            .build()?;
+    pub fn new() -> Result<Self, io::Error> {
+        use std::env::current_dir;
 
-        // You can deserialize (and thus freeze) the entire configuration as
-        s.try_deserialize()
+        Ok(Settings {
+            path: current_dir()?,
+        })
     }
 }
 
