@@ -22,7 +22,7 @@ RUN cd /models/opus-mt-ROMANCE-en && git lfs pull
 
 FROM rust:slim as builder
 
-RUN apt-get update && apt-get install -y pkg-config libssl-dev build-essential
+RUN apt-get update && apt-get install -y pkg-config build-essential
 
 RUN mkdir -p /vendor/libtorch
 COPY --from=install-libtorch /vendor/libtorch /vendor/libtorch
@@ -38,18 +38,20 @@ RUN cargo build --release
 
 FROM debian
 
-RUN mkdir -p /vendor/libtorch
-COPY --from=install-libtorch /vendor/libtorch /vendor/libtorch
-
-ENV LIBTORCH=/vendor/libtorch
-ENV LD_LIBRARY_PATH=/vendor/libtorch/lib:$LD_LIBRARY_PATH
-
-RUN apt-get update && apt-get install -y pkg-config libssl-dev libgomp1
+RUN apt-get update && apt-get install -y pkg-config libgomp1
 
 WORKDIR /app
 
+ENV APP_PATH=/app/models
+ENV LIBTORCH=/vendor/libtorch
+ENV LD_LIBRARY_PATH=/vendor/libtorch/lib:$LD_LIBRARY_PATH
+
+RUN mkdir -p /vendor/libtorch
+
+COPY --from=install-libtorch /vendor/libtorch /vendor/libtorch
+COPY --from=download-models /models /app/models
+COPY --from=builder /app/target/release/translation /app/translation
+
 EXPOSE 80
 
-COPY --from=builder /app/target/release/translation ./translation
-
-CMD ["./translation"]
+CMD ["/app/translation"]

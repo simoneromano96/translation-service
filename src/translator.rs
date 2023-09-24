@@ -124,13 +124,16 @@ impl Translator {
         let vocab_resource = LocalResource {
             local_path: base_path.join("vocab.json"),
         };
+        let merge_resource = LocalResource {
+            local_path: base_path.join("source.spm"),
+        };
 
         let translation_config = TranslationConfig::new(
             ModelType::Marian,
             ModelResource::Torch(Box::new(model_resource)),
             config_resource,
             vocab_resource,
-            None,
+            Some(merge_resource),
             vec![source_lang],
             vec![target_lang],
             Device::cuda_if_available(),
