@@ -52,6 +52,6 @@ COPY --from=install-libtorch /vendor/libtorch /vendor/libtorch
 COPY --from=download-models /models /app/models
 COPY --from=builder /app/target/release/translation /app/translation
 
-EXPOSE 80
+EXPOSE 8080
 
 CMD ["/app/translation"]
