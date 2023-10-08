@@ -10,12 +10,13 @@ use std::{
 
 use rust_bert::{
     pipelines::{
-        common::{ModelResource, ModelType},
+        common::{ModelResource, ModelType, ONNXModelResources},
         translation::{Language, TranslationConfig, TranslationModel},
     },
     resources::LocalResource,
     RustBertError,
 };
+
 use tch::Device;
 use tokio::sync::oneshot;
 
@@ -104,11 +105,11 @@ impl Translator {
         // Create a translation model based on the specified direction
         let (source_lang, target_lang) = match direction {
             TranslationDirection::EnglishToItalian => {
-                base_path.push("opus-mt-en-ROMANCE");
+                base_path.push("opus-mt-en-it");
                 (Language::English, Language::Italian)
             }
             TranslationDirection::ItalianToEnglish => {
-                base_path.push("opus-mt-ROMANCE-en");
+                base_path.push("opus-mt-it-en");
                 (Language::Italian, Language::English)
             }
         };
@@ -117,8 +118,16 @@ impl Translator {
         debug!("Derived source_lang {source_lang:?}");
         debug!("Derived target_lang {target_lang:?}");
 
-        let model_resource = LocalResource {
-            local_path: base_path.join("rust_model.ot"),
+        let model_resource = ONNXModelResources {
+            encoder_resource: Some(Box::new(LocalResource {
+                local_path: base_path.join("encoder_model.onnx"),
+            })),
+            decoder_resource: Some(Box::new(LocalResource {
+                local_path: base_path.join("decoder_model.onnx"),
+            })),
+            decoder_with_past_resource: Some(Box::new(LocalResource {
+                local_path: base_path.join("decoder_with_past_model.onnx"),
+            })),
         };
         let config_resource = LocalResource {
             local_path: base_path.join("config.json"),
@@ -132,7 +141,7 @@ impl Translator {
 
         let translation_config = TranslationConfig::new(
             ModelType::Marian,
-            ModelResource::Torch(Box::new(model_resource)),
+            ModelResource::ONNX(model_resource),
             config_resource,
             vocab_resource,
             Some(merge_resource),
